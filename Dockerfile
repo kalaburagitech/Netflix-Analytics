@@ -11,14 +11,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy files from context
+# Copy files
 COPY . .
 
-# Ensure compatibility whether context is repo root or /backend
-RUN if [ -d "app" ] && [ ! -d "backend" ]; then \
-      mkdir -p backend && cp -r app backend/ 2>/dev/null || true; \
-    fi && \
-    if [ -d "backend/data" ] && [ ! -d "data" ]; then \
+# Ensure data is accessible in standard locations
+RUN if [ -d "backend/data" ] && [ ! -d "data" ]; then \
       cp -r backend/data data 2>/dev/null || true; \
     elif [ -d "data" ] && [ ! -d "backend/data" ]; then \
       mkdir -p backend && cp -r data backend/data 2>/dev/null || true; \
@@ -29,5 +26,5 @@ ENV PORT=8000
 
 EXPOSE 8000
 
-# Start FastAPI listening on Render's dynamic $PORT
+# Start FastAPI on Render's dynamic $PORT
 CMD ["sh", "-c", "uvicorn backend.app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
